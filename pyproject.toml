@@ -1,0 +1,27 @@
+[project]
+name = "localwhisper"
+version = "0.1.0"
+description = "Free, fully local background dictation for macOS (Superwhisper clone)"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "mlx-whisper>=0.4.0",
+    # keep the resolver away from ancient numba (py<3.10 only); modern numba
+    # also caps numpy at a version every other dep here accepts
+    "numba>=0.60",
+    "faster-whisper>=1.1.0",
+    "sounddevice>=0.5.0",
+    "numpy",
+    "rumps>=0.4.0",
+    "requests",
+    "pyobjc-framework-Cocoa",
+    "pyobjc-framework-Quartz",
+    "pyobjc-framework-ApplicationServices",
+    "pyobjc-framework-WebKit",
+]
+
+[project.scripts]
+localwhisper = "localwhisper.app:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

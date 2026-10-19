@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LocalWhisper Settings</title>
+<style>
+  :root {
+    --bg: #0e1013;
+    --card: rgba(255,255,255,0.045);
+    --border: rgba(255,255,255,0.09);
+    --text: #e8eaed;
+    --muted: #9aa0a6;
+    --accent: #34d399;
+    --accent-dim: rgba(52,211,153,0.14);
+    --danger: #f87171;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 28px 20px 80px; }
+  header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px; }
+  header h1 { font-size: 20px; font-weight: 650; margin: 0; }
+  header .sub { color: var(--muted); font-size: 13px; }
+  nav { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 20px;
+        border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+  nav button {
+    background: none; border: 0; color: var(--muted); padding: 6px 12px;
+    border-radius: 8px; font-size: 13.5px; cursor: pointer; font-weight: 550;
+  }
+  nav button:hover { color: var(--text); background: var(--card); }
+  nav button.active { color: var(--accent); background: var(--accent-dim); }
+  section { display: none; }
+  section.active { display: block; }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 20px; margin-bottom: 14px;
+  }
+  .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em;
+             color: var(--muted); margin: 0 0 14px; font-weight: 650; }
+  .row { display: flex; align-items: center; justify-content: space-between;
+         gap: 16px; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .row:last-child { border-bottom: 0; }
+  .row label { flex: 1; }
+  .row .hint { display: block; color: var(--muted); font-size: 12px; }
+  input[type=text], input[type=number], select, textarea {
+    background: rgba(0,0,0,0.35); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 7px 10px; font-size: 13.5px; min-width: 220px;
+  }
+  textarea { width: 100%; min-height: 90px; font-family: var(--mono); font-size: 12.5px; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+  .switch { position: relative; width: 42px; height: 24px; flex: none; }
+  .switch input { display: none; }
+  .switch span {
+    position: absolute; inset: 0; background: rgba(255,255,255,0.12);
+    border-radius: 999px; transition: background .15s; cursor: pointer;
+  }
+  .switch span::after {
+    content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px;
+    background: #fff; border-radius: 50%; transition: transform .15s;
+  }
+  .switch input:checked + span { background: var(--accent); }
+  .switch input:checked + span::after { transform: translateX(18px); }
+  button.primary {
+    background: var(--accent); color: #06281c; border: 0; border-radius: 10px;
+    padding: 9px 18px; font-size: 14px; font-weight: 650; cursor: pointer;
+  }
+  button.primary:hover { filter: brightness(1.08); }
+  button.ghost {
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    border-radius: 8px; padding: 5px 10px; font-size: 12.5px; cursor: pointer;
+  }
+  button.ghost:hover { color: var(--text); border-color: var(--muted); }
+  .savebar { position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(14,16,19,0.85); backdrop-filter: blur(14px);
+    border-top: 1px solid var(--border); padding: 12px 20px;
+    display: flex; justify-content: center; gap: 10px; }
+  .statgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 10px; }
+  .stat { background: rgba(0,0,0,0.25); border: 1px solid var(--border);
+          border-radius: 10px; padding: 12px 14px; }
+  .stat .k { color: var(--muted); font-size: 11.5px; text-transform: uppercase;
+             letter-spacing: 0.05em; }
+  .stat .v { font-size: 16px; font-weight: 650; margin-top: 3px; }
+  .stat .v.accent { color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; color: var(--muted); font-weight: 600; font-size: 11.5px;
+       text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 8px;
+       border-bottom: 1px solid var(--border); }
+  td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: top; }
+  tr.item:hover { background: rgba(255,255,255,0.03); cursor: pointer; }
+  .pill { display: inline-block; background: rgba(255,255,255,0.07); border-radius: 999px;
+          padding: 1px 9px; font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+  .kv { display: grid; grid-template-columns: 1fr 1fr 32px; gap: 8px; margin-bottom: 8px; }
+  .kv input, .kv select { min-width: 0; width: 100%; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.3);
+         border: 1px solid var(--border); border-radius: 999px; padding: 4px 6px 4px 12px; }
+  .tag button { background: none; border: 0; color: var(--muted); cursor: pointer;
+                font-size: 14px; padding: 0 4px; }
+  .tag button:hover { color: var(--danger); }
+  #toasts { position: fixed; right: 18px; bottom: 74px; display: flex;
+            flex-direction: column; gap: 8px; z-index: 50; }
+  .toast { background: rgba(20,24,28,0.95); border: 1px solid var(--border);
+           border-left: 3px solid var(--accent); border-radius: 10px;
+           padding: 10px 16px; font-size: 13px; animation: pop .18s ease-out; }
+  .toast.warn { border-left-color: #fbbf24; }
+  @keyframes pop { from { transform: translateY(8px); opacity: 0; } }
+  .mono { font-family: var(--mono); font-size: 12.5px; }
+  .muted { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>LocalWhisper</h1>
+    <span class="sub">everything runs on this Mac</span>
+  </header>
+  <nav id="nav"></nav>
+
+  <section data-tab="Status">
+    <div class="card">
+      <h2>Now</h2>
+      <div class="statgrid" id="statusGrid"></div>
+      <div class="row" style="margin-top:10px">
+        <label>Dictation mode
+          <span class="hint">Auto picks a format from the frontmost app. Force one when dictating something unusual. Applies instantly.</span></label>
+        <select id="modeSelect" onchange="setMode(this.value)"></select>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Last dictation</h2>
+      <div id="lastDictation" class="muted">No dictations yet.</div>
+    </div>
+  </section>
+
+  <section data-tab="General">
+    <div class="card">
+      <h2>Speech recognition</h2>
+      <div class="row"><label>Engine
+          <span class="hint">mlx = Apple GPU (fast). Change needs relaunch.</span></label>
+        <select id="engine"><option value="mlx">mlx (Apple GPU)</option>
+          <option value="faster-whisper">faster-whisper (CPU)</option></select></div>
+      <div class="row"><label>Whisper model
+          <span class="hint">large-v3-turbo is the best speed/quality. Change needs relaunch.</span></label>
+        <input type="text" id="model"></div>
+      <div class="row"><label>Language
+          <span class="hint">Auto handles Spanish and English per recording.</span></label>
+        <select id="language"><option value="">auto</option>
+          <option value="es">Spanish</option><option value="en">English</option></select></div>
+    </div>
+    <div class="card">
+      <h2>Hotkey</h2>
+      <div class="row"><label>Key (double-tap toggles recording)
+          <span class="hint">Change needs relaunch.</span></label>
+        <select id="hotkeyKey">
+          <option value="alt_r">Right Option</option><option value="alt_l">Left Option</option>
+          <option value="cmd_r">Right Command</option><option value="ctrl_r">Right Control</option>
+          <option value="shift_r">Right Shift</option><option value="f13">F13</option>
+          <option value="f14">F14</option><option value="f15">F15</option>
+        </select></div>
+      <div class="row"><label>Double-tap window (seconds)</label>
+        <input type="number" id="tapWindow" step="0.05" min="0.15" max="1"></div>
+    </div>
+    <div class="card">
+      <h2>Behavior</h2>
+      <div class="row"><label>Restore clipboard after paste</label>
+        <div class="switch"><input type="checkbox" id="restoreClipboard"><span onclick="flip('restoreClipboard')"></span></div></div>
+      <div class="row"><label>Keep local history</label>
+        <div class="switch"><input type="checkbox" id="historyEnabled"><span onclick="flip('historyEnabled')"></span></div></div>
+      <div class="row"><label>Read the focused field for context
+          <span class="hint">Window title, selection and nearby text go to the local LLM only. Secure fields are never read.</span></label>
+        <div class="switch"><input type="checkbox" id="captureEnabled"><span onclick="flip('captureEnabled')"></span></div></div>
+    </div>
+  </section>
+
+  <section data-tab="Cleanup">
+    <div class="card">
+      <h2>LLM cleanup (LM Studio)</h2>
+      <div class="row"><label>Enabled
+          <span class="hint">Off = paste the raw transcript.</span></label>
+        <div class="switch"><input type="checkbox" id="cleanupEnabled"><span onclick="flip('cleanupEnabled')"></span></div></div>
+      <div class="row"><label>Model
+          <span class="hint">Auto picks whatever is already loaded, avoiding load stalls.</span></label>
+        <select id="cleanupModel"><option value="">auto (prefer loaded)</option></select></div>
+      <div class="row"><label>Server URL</label>
+        <input type="text" id="cleanupUrl"></div>
+      <div class="row"><label>Timeout (seconds)
+          <span class="hint">Slower than this and the raw transcript is pasted instead.</span></label>
+        <input type="number" id="cleanupTimeout" step="1" min="2" max="60"></div>
+      <div class="row"><label>Temperature</label>
+        <input type="number" id="cleanupTemp" step="0.05" min="0" max="1"></div>
+    </div>
+  </section>
+
+  <section data-tab="Vocabulary">
+    <div class="card">
+      <h2>Names and terms Whisper should spell correctly</h2>
+      <p class="muted" style="margin-top:0">Fed to the speech model as a glossary
+        and to the cleanup LLM as spelling ground truth.</p>
+      <div class="tags" id="vocabTags"></div>
+      <div style="margin-top:12px; display:flex; gap:8px">
+        <input type="text" id="vocabNew" placeholder="Add a word and press Enter">
+      </div>
+    </div>
+  </section>
+
+  <section data-tab="Contexts">
+    <div class="card">
+      <h2>App &rarr; context</h2>
+      <p class="muted" style="margin-top:0">Bundle id (or <span class="mono">name:substring</span>) decides how a dictation is formatted.</p>
+      <div id="appContexts"></div>
+      <button class="ghost" onclick="addKvRow('appContexts')">+ Add app</button>
+    </div>
+    <div class="card">
+      <h2>Browser tab title &rarr; context</h2>
+      <p class="muted" style="margin-top:0">Inside a browser, a tab-title substring refines the context (gmail &rarr; email).</p>
+      <div id="titleContexts"></div>
+      <button class="ghost" onclick="addKvRow('titleContexts')">+ Add rule</button>
+    </div>
+    <div class="card">
+      <h2>Context instructions</h2>
+      <div id="ctxInstructions"></div>
+    </div>
+  </section>
+
+  <section data-tab="History">
+    <div class="card">
+      <h2>Dictation history <span class="muted" style="text-transform:none;font-weight:400">(click a row to copy)</span></h2>
+      <div style="display:flex; gap:8px; margin-bottom:12px">
+        <input type="text" id="historySearch" placeholder="Search text or app" style="flex:1">
+        <button class="ghost" onclick="loadHistory()">Search</button>
+      </div>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>When</th><th>App</th><th>Text</th><th>Timing</th></tr></thead>
+        <tbody id="historyBody"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section data-tab="Advanced">
+    <div class="card">
+      <h2>Full config JSON</h2>
+      <p class="muted" style="margin-top:0">Everything, including keys the tabs do not cover. Saving here overwrites the whole config.</p>
+      <textarea id="rawJson" style="min-height:420px"></textarea>
+      <div style="margin-top:10px"><button class="primary" onclick="saveRaw()">Save JSON</button></div>
+    </div>
+  </section>
+</div>
+
+<div class="savebar"><button class="primary" onclick="save()">Save changes</button></div>
+<div id="toasts"></div>
+
+<script>
+const TABS = ["Status","General","Cleanup","Vocabulary","Contexts","History","Advanced"];
+let cfg = null;
+
+const $ = id => document.getElementById(id);
+function toast(msg, warn) {
+  const el = document.createElement("div");
+  el.className = "toast" + (warn ? " warn" : "");
+  el.textContent = msg;
+  $("toasts").appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+function flip(id) { $(id).checked = !$(id).checked; }
+
+// ---- tabs ----
+TABS.forEach((name, i) => {
+  const b = document.createElement("button");
+  b.textContent = name;
+  b.onclick = () => selectTab(name);
+  $("nav").appendChild(b);
+});
+function selectTab(name) {
+  document.querySelectorAll("nav button").forEach(b =>
+    b.classList.toggle("active", b.textContent === name));
+  document.querySelectorAll("section").forEach(s =>
+    s.classList.toggle("active", s.dataset.tab === name));
+  if (name === "Status") loadStatus();
+  if (name === "History") loadHistory();
+  if (name === "Advanced") $("rawJson").value = JSON.stringify(collect(), null, 2);
+}
+
+// ---- status ----
+function renderModeSelect() {
+  const sel = $("modeSelect");
+  if (sel.options.length) return;
+  sel.innerHTML = '<option value="">auto (per app)</option>' +
+    Object.keys(cfg.context_instructions).sort().map(k =>
+      `<option value="${esc(k)}">${esc(k)}</option>`).join("");
+}
+async function setMode(mode) {
+  const r = await fetch("/api/mode", {method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({mode: mode || null})});
+  const res = await r.json();
+  if (!r.ok) { toast("Mode change failed: " + res.error, true); return; }
+  toast(res.mode === "auto" ? "Mode: auto (per app)." : "Mode forced: " + res.mode + ".");
+  loadStatus();
+}
+async function loadStatus() {
+  const s = await (await fetch("/api/status")).json();
+  renderModeSelect();
+  const sel = $("modeSelect");
+  if (document.activeElement !== sel)
+    sel.value = s.mode === "auto" ? "" : s.mode;
+  const stats = [
+    ["State", s.state, s.state === "idle"],
+    ["Whisper", s.model + " · " + s.engine, false],
+    ["Mode", s.mode, false],
+  ];
+  if (s.last && s.last.transcribe_seconds != null) stats.push(["Last timing",
+    s.last.transcribe_seconds + "s + " + (s.last.cleanup_seconds ?? 0) + "s llm", true]);
+  $("statusGrid").innerHTML = stats.map(([k,v,a]) =>
+    `<div class="stat"><div class="k">${k}</div><div class="v${a?" accent":""}">${esc(String(v))}</div></div>`).join("");
+  if (s.last) $("lastDictation").innerHTML =
+    `<div class="mono" style="margin-bottom:6px">${esc(s.last.final_text || "")}</div>
+     <span class="pill">${esc(s.last.app_name||"")}</span>
+     <span class="pill">${esc(s.last.context||"")}</span>
+     <span class="pill">${esc(s.last.ts||"")}</span>`;
+}
+
+// ---- config <-> form ----
+async function loadConfig() {
+  cfg = await (await fetch("/api/config")).json();
+  $("engine").value = cfg.engine || "mlx";
+  $("model").value = cfg.model || "";
+  $("language").value = cfg.language || "";
+  $("hotkeyKey").value = cfg.hotkey.key;
+  $("tapWindow").value = cfg.hotkey.double_tap_window;
+  $("restoreClipboard").checked = !!cfg.paste.restore_clipboard;
+  $("historyEnabled").checked = !!cfg.history.enabled;
+  $("captureEnabled").checked = !!(cfg.context_capture || {}).enabled;
+  $("cleanupEnabled").checked = !!cfg.cleanup.enabled;
+  $("cleanupUrl").value = cfg.cleanup.base_url;
+  $("cleanupTimeout").value = cfg.cleanup.timeout_seconds;
+  $("cleanupTemp").value = cfg.cleanup.temperature;
+  renderVocab();
+  renderKv("appContexts", cfg.app_contexts);
+  renderKv("titleContexts", cfg.browser_title_contexts || {});
+  renderInstructions();
+  loadLlmModels();
+}
+async function loadLlmModels() {
+  const models = await (await fetch("/api/llm-models")).json();
+  const sel = $("cleanupModel");
+  sel.innerHTML = '<option value="">auto (prefer loaded)</option>';
+  models.forEach(m => {
+    const o = document.createElement("option");
+    o.value = m.id;
+    o.textContent = m.id + (m.state === "loaded" ? "  (loaded)" : "");
+    sel.appendChild(o);
+  });
+  sel.value = cfg.cleanup.model || "";
+}
+function renderVocab() {
+  $("vocabTags").innerHTML = "";
+  (cfg.vocabulary || []).forEach((w, i) => {
+    const t = document.createElement("span");
+    t.className = "tag";
+    t.innerHTML = `${esc(w)}<button title="remove">&times;</button>`;
+    t.querySelector("button").onclick = () => { cfg.vocabulary.splice(i,1); renderVocab(); };
+    $("vocabTags").appendChild(t);
+  });
+}
+$("vocabNew").addEventListener("keydown", e => {
+  if (e.key === "Enter" && e.target.value.trim()) {
+    (cfg.vocabulary = cfg.vocabulary || []).push(e.target.value.trim());
+    e.target.value = "";
+    renderVocab();
+  }
+});
+function contextOptions(selected) {
+  return Object.keys(cfg.context_instructions).map(k =>
+    `<option ${k===selected?"selected":""}>${esc(k)}</option>`).join("");
+}
+function renderKv(id, map) {
+  $(id).innerHTML = "";
+  Object.entries(map).forEach(([k, v]) => appendKvRow(id, k, v));
+}
+function appendKvRow(id, k, v) {
+  const row = document.createElement("div");
+  row.className = "kv";
+  row.innerHTML = `<input type="text" value="${esc(k)}" placeholder="${id==='appContexts'?'bundle id or name:substring':'title substring'}">
+    <select>${contextOptions(v)}</select>
+    <button class="ghost" title="remove">&times;</button>`;
+  row.querySelector("button").onclick = () => row.remove();
+  $(id).appendChild(row);
+}
+function addKvRow(id) { appendKvRow(id, "", cfg.default_context || "prose"); }
+function renderInstructions() {
+  $("ctxInstructions").innerHTML = "";
+  Object.entries(cfg.context_instructions).forEach(([k, v]) => {
+    const d = document.createElement("div");
+    d.style.marginBottom = "12px";
+    d.innerHTML = `<div style="font-weight:600; margin-bottom:4px">${esc(k)}</div>
+      <textarea data-ctx="${esc(k)}">${esc(v)}</textarea>`;
+    $("ctxInstructions").appendChild(d);
+  });
+}
+function collectKv(id) {
+  const out = {};
+  $(id).querySelectorAll(".kv").forEach(row => {
+    const k = row.querySelector("input").value.trim();
+    if (k) out[k] = row.querySelector("select").value;
+  });
+  return out;
+}
+function collect() {
+  const c = JSON.parse(JSON.stringify(cfg));
+  c.engine = $("engine").value;
+  c.model = $("model").value.trim();
+  c.language = $("language").value || null;
+  c.hotkey.key = $("hotkeyKey").value;
+  c.hotkey.double_tap_window = parseFloat($("tapWindow").value) || 0.4;
+  c.paste.restore_clipboard = $("restoreClipboard").checked;
+  c.history.enabled = $("historyEnabled").checked;
+  c.context_capture = c.context_capture || {enabled: true, max_chars: 1200};
+  c.context_capture.enabled = $("captureEnabled").checked;
+  c.cleanup.enabled = $("cleanupEnabled").checked;
+  c.cleanup.model = $("cleanupModel").value || null;
+  c.cleanup.base_url = $("cleanupUrl").value.trim();
+  c.cleanup.timeout_seconds = parseFloat($("cleanupTimeout").value) || 10;
+  c.cleanup.temperature = parseFloat($("cleanupTemp").value) || 0;
+  c.app_contexts = collectKv("appContexts");
+  c.browser_title_contexts = collectKv("titleContexts");
+  document.querySelectorAll("#ctxInstructions textarea").forEach(t => {
+    c.context_instructions[t.dataset.ctx] = t.value;
+  });
+  return c;
+}
+async function post(config) {
+  const r = await fetch("/api/config", {method: "POST",
+    headers: {"Content-Type": "application/json"}, body: JSON.stringify(config)});
+  const res = await r.json();
+  if (!r.ok) { toast("Save failed: " + res.error, true); return; }
+  cfg = config;
+  toast(res.restart_required
+    ? "Saved. Relaunch LocalWhisper to apply model/hotkey changes."
+    : "Saved and applied.", res.restart_required);
+}
+async function save() { await post(collect()); }
+async function saveRaw() {
+  let parsed;
+  try { parsed = JSON.parse($("rawJson").value); }
+  catch (e) { toast("Invalid JSON: " + e.message, true); return; }
+  await post(parsed);
+  loadConfig();
+}
+
+// ---- history ----
+async function loadHistory() {
+  const q = encodeURIComponent($("historySearch").value.trim());
+  const rows = await (await fetch(`/api/history?q=${q}&limit=100`)).json();
+  $("historyBody").innerHTML = rows.map(r => `
+    <tr class="item" data-text="${esc(r.final_text || "")}">
+      <td class="muted" style="white-space:nowrap">${esc((r.ts||"").slice(5,16))}</td>
+      <td><span class="pill">${esc(r.app_name||"")}</span></td>
+      <td>${esc(r.final_text||"")}</td>
+      <td class="muted mono" style="white-space:nowrap">${r.transcribe_seconds != null ? r.transcribe_seconds + "s+" + (r.cleanup_seconds ?? 0) + "s" : ""}</td>
+    </tr>`).join("") || '<tr><td colspan="4" class="muted">Nothing yet.</td></tr>';
+  document.querySelectorAll("#historyBody tr.item").forEach(tr => {
+    tr.onclick = () => copyText(tr.dataset.text);
+  });
+}
+$("historySearch").addEventListener("keydown", e => { if (e.key === "Enter") loadHistory(); });
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (e) {  // WKWebView denies the clipboard API; use the legacy path
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+  }
+  toast("Copied to clipboard.");
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g,
+    c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+loadConfig().then(() => selectTab("Status"));
+setInterval(() => {
+  if (document.querySelector('section[data-tab="Status"]').classList.contains("active"))
+    loadStatus();
+}, 2000);
+</script>
+</body>
+</html>
