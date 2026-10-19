@@ -42,30 +42,14 @@ Monitoring.
 
 ## Run
 
-Three ways, same tool:
+From the project directory:
 
 ```bash
-open ~/Applications/LocalWhisper.app   # the app (Spotlight: "LocalWhisper")
-localwhisper                           # global command, works from any directory
-uv run localwhisper --no-ui            # dev mode from the project, headless logs
+uv run localwhisper          # menu bar app
+uv run localwhisper --no-ui  # headless logs
 ```
 
 Menu bar states: 🎙 idle, 🔴 recording, ✍️ transcribing.
-
-The app and the `localwhisper` command both run a dedicated venv at
-`~/.local/share/localwhisper/venv`. That venv lives outside `~/Desktop` on
-purpose: Desktop is a TCC-protected folder that LocalWhisper.app cannot
-read. After changing code in this project, refresh it with:
-
-```bash
-./update-app.sh   # reinstalls the app venv and restarts the app
-```
-
-The app has its own permission identity, so macOS prompts for Microphone,
-Accessibility and Input Monitoring under the name "LocalWhisper" on first
-launch (independent of any grants your terminal has). Logs go to
-`~/Library/Logs/LocalWhisper.log`. A second launch while one instance is
-running exits quietly.
 
 Usage: put the cursor where the text should go, double-tap Right Option,
 speak, double-tap again. The final text is pasted at the cursor and your
@@ -89,6 +73,11 @@ uv run localwhisper --transcribe-file /tmp/test.aiff
   or local path.
 - `language`: `null` autodetects per recording (fine for mixing Spanish and
   English); pin `"es"` or `"en"` to force it.
+- `vocabulary`: glossary terms fed to Whisper and the cleanup LLM. The
+  default list in `src/localwhisper/config.py` ships with placeholder entries
+  (`YourName`, `YourCompany`, `ProjectCodename`); replace them with your own
+  names and terms, either in `~/.config/localwhisper/config.json` or on the
+  settings page.
 - `hotkey.key`: pynput key name (`alt_r` = Right Option; `f13`, `cmd_r`...).
 - `cleanup.enabled` / `cleanup.base_url` / `cleanup.model`: the LLM pass.
   `model: null` uses whatever LM Studio lists first; pin e.g.
@@ -115,16 +104,13 @@ Disable with `"history": {"enabled": false}`.
 
 ## Start at login (optional)
 
-System Settings > General > Login Items & Extensions > add
-`~/Applications/LocalWhisper.app`. Since the app has its own permission
-identity, the grants persist across reboots with no extra setup.
+There is no packaged app yet. You can run `uv run localwhisper` from a login
+script of your own.
 
 ## Uninstall
 
 ```bash
 rm -rf <your localwhisper repo folder> ~/.config/localwhisper
-rm -rf ~/Applications/LocalWhisper.app ~/.local/share/localwhisper
-rm -f ~/.local/bin/localwhisper ~/Library/Logs/LocalWhisper.log
 rm -rf ~/.cache/huggingface/hub/models--*whisper*   # model weights
 ```
 
